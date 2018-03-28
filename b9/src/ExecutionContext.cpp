@@ -89,7 +89,9 @@ StackElement ExecutionContext::interpret(const std::size_t functionIndex) {
   // interpret the method otherwise
   const Instruction *instructionPointer = function->instructions.data();
 
-  StackElement *args = stack_.top() - function->nargs;
+  //StackElement *args = stack_.top() - function->nargs;
+  StackElement *basePointer = stack_.top();
+
   stack_.pushn(function->nregs);
 
   while (*instructionPointer != END_SECTION) {
@@ -99,7 +101,7 @@ StackElement ExecutionContext::interpret(const std::size_t functionIndex) {
         break;
       case ByteCode::FUNCTION_RETURN: {
         auto result = stack_.pop();
-        stack_.restore(args);
+        stack_.restore(basePointer - argsCount);
         return result;
         break;
       }
@@ -116,11 +118,11 @@ StackElement ExecutionContext::interpret(const std::size_t functionIndex) {
         doDrop();
         break;
       case ByteCode::PUSH_FROM_VAR:
-        doPushFromVar(args, instructionPointer->parameter());
+        doPushFromVar(basePointer, instructionPointer->parameter());
         break;
       case ByteCode::POP_INTO_VAR:
         // TODO bad name, push or pop?
-        doPushIntoVar(args, instructionPointer->parameter());
+        doPushIntoVar(basePointer, instructionPointer->parameter());
         break;
       case ByteCode::INT_ADD:
         doIntAdd();

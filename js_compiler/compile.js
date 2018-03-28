@@ -211,9 +211,9 @@ function FunctionDefinition(outer) {
 	this.localIndex = function (name) {
 		var index = this.regs.lookup(name);
 		if (index) {
-			return index + this.args.next;
+			return index ;
 		}
-		return this.args.lookup(name);
+		return this.args.lookup(name) - this.args.next
 	}
 
 	this.placeLabel = function (label) {
