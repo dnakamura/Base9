@@ -22,6 +22,7 @@
 #include <string>
 
 namespace b9 {
+ExecutionContext *currentExecutionContext = nullptr;
 
 ExecutionContext::ExecutionContext(VirtualMachine& virtualMachine,
                                    const Config& cfg)
@@ -82,6 +83,7 @@ Om::Value ExecutionContext::callJitFunction(JitFunction jitFunction,
 
 StackElement ExecutionContext::run(std::size_t target,
                                    std::vector<StackElement> arguments) {
+  currentExecutionContext = this;
   auto& callee = getFunction(target);
   assert(callee.nargs == arguments.size());
 
@@ -93,10 +95,12 @@ StackElement ExecutionContext::run(std::size_t target,
 
   enterCall(target, CallerType::OUTERMOST);
   interpret();
+  currentExecutionContext = nullptr;
   return stack_.pop();
 }
 
 StackElement ExecutionContext::run(std::size_t target) {
+  currentExecutionContext = this;
   auto& callee = getFunction(target);
   assert(callee.nargs == 0);
 
@@ -104,6 +108,7 @@ StackElement ExecutionContext::run(std::size_t target) {
 
   enterCall(target);
   interpret();
+  currentExecutionContext = nullptr;
   return stack_.pop();
 }
 
@@ -227,6 +232,10 @@ void ExecutionContext::enterCall(std::size_t target, CallerType type) {
   fn_ = target;
   ip_ = callee.instructions.data();
   bp_ = stack_.top();
+
+  if (callee.name == "breakfn"){
+    raise(SIGTRAP);
+  }
 }
 
 void ExecutionContext::exitCall() {

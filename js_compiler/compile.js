@@ -8,7 +8,7 @@ var esprima = require('esprima');
 var fs = require('fs');
 
 function outputUInt32(out, value) {
-	var buf = Buffer.alloc(4);
+	var buf = new Buffer(4); //Buffer.alloc(4);
 	buf.writeUInt32LE(value, 0);
 	fs.writeSync(out, buf, 0, 4);
 }
